@@ -1,0 +1,49 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum NoteRequestStatus {
+  QUEUED
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+model NoteRequest {
+  id          String @id @default(uuid())
+  requestId   String @unique @default(uuid())
+  userId      String
+  topic       String
+  status      NoteRequestStatus @default(QUEUED)
+  error       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  completedAt DateTime?
+
+  note        Note?
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+
+model Note {
+  id                String @id @default(uuid())
+  noteRequestId     String @unique
+  content           String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  noteRequest       NoteRequest @relation(fields: [noteRequestId], references: [id], onDelete: Cascade)
+}
